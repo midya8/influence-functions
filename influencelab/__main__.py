@@ -2,6 +2,7 @@ import argparse
 import json
 from pathlib import Path
 from .core import audit
+from .curvature import weight_curvature
 from .demo import demo
 from .path import path_demo, trace_deletion
 
@@ -24,6 +25,8 @@ def main():
     request.add_argument('input')
     trace = sub.add_parser('trace')
     trace.add_argument('input')
+    curvature = sub.add_parser('curvature')
+    curvature.add_argument('input')
     args = parser.parse_args()
     try:
         if args.command == 'demo':
@@ -36,16 +39,20 @@ def main():
                 raise ValueError('input limit:100000 bytes')
             data = json.loads(raw, object_pairs_hook=strict_object, parse_constant=lambda v: (_ for _ in ()).throw(ValueError('nonfinite JSON')))
             fields = {'version', 'X', 'y', 'query', 'label', 'ridge', 'damping', 'refit'} if args.command == 'audit' else {'version', 'X', 'y', 'query', 'label', 'ridge', 'indices', 'segments'}
+            if args.command == 'curvature':
+                fields = {'version', 'X', 'y', 'query', 'label', 'ridge', 'weights', 'normalizer', 'left', 'right'}
             if not isinstance(data, dict) or set(data) != fields:
                 raise ValueError('expected exact version1 request fields')
             if type(data['version']) is not int or data['version'] != 1:
                 raise ValueError('version must be integer1')
             if args.command == 'audit':
                 result = audit(data['X'], data['y'], data['query'], data['label'], data['ridge'], data['damping'], data['refit'])
+            elif args.command == 'curvature':
+                result = weight_curvature(data['X'], data['y'], data['query'], data['label'], data['left'], data['right'], data['ridge'], data['weights'], data['normalizer'])
             else:
                 result = trace_deletion(data['X'], data['y'], data['query'], data['label'], data['indices'], data['ridge'], data['segments'])
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
-    except (ValueError, OSError, TypeError, OverflowError) as exc:
+    except (ValueError, OSError, TypeError, OverflowError, RecursionError) as exc:
         parser.exit(2, 'error: ' + str(exc) + '\n')
 
 
