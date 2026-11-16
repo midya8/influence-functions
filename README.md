@@ -2,9 +2,10 @@
 
 InfluenceLab fits a small regularized logistic-regression model and differentiates training-row weights. It compares the local influence prediction with converged deletion refits rather than assuming that a derivative predicts a full retraining.
 
-Two calculations keep the approximation and reference separate:
+Separate calculations keep the approximation and reference separate:
 
 - [Fit and influence](DESIGN.md): sample-weight derivatives, linear deletion predictions and two finite-deletion normalization conventions.
+- [Mixed weight curvature](CURVATURE.md): two sample-weight directions, full mixed parameter derivatives and the separate query-Hessian and refit-curvature terms.
 - [Deletion paths](PATHS.md): refit along a selected weight path, recompute its derivative and compare numerical integral estimates with the endpoint loss change.
 
 ![Influence and deletion audit](assets/influence-audit.svg)
@@ -58,7 +59,7 @@ The damped inverse uses `H + delta I` **at the original fit**. It is labeled an 
 
 ## Verification
 
-43 tests cover the original fit/influence checks below and the path checks described in [PATHS.md](PATHS.md):
+55 tests cover the original fit/influence checks below, the path checks in [PATHS.md](PATHS.md) and twelve mixed-curvature checks in [CURVATURE.md](CURVATURE.md):
 
 - Independent loss/gradient/curvature references, all gradient/Hessian finite differences, scalar fit versus a separate monotone bisection optimizer, and all influence coordinates versus two-sided weight-perturbed refits.
 - Cholesky reconstruction, independent two-dimensional inverse, primal/adjoint agreement, solve residuals, weighted curvature sum-of-squares and strong-convexity parameter-error bounds.
@@ -66,7 +67,7 @@ The damped inverse uses `H + delta I` **at the original fit**. It is labeled an 
 - Backtracking on a dedicated developed stress fixture, explicit nonconvergence errors, stable extreme logits, strict inputs/JSON, no mutation or global RNG use, and byte-reproducible output.
 - Three SVG tests check all 42 table cells and positions, the signed deletion error and fit count, full compressed report metadata, hidden refit-Hessian tampering and byte-exact regeneration.
 
-CI runs Python 3.10-3.13, the demo/caller CLI paths, the SVG check and full-JSON parity from an installed five-module wheel outside the checkout. The demo's 15 base/deletion fits all have max absolute gradient at most `8.197e-11`; the undamped influence solve residual is at most `5.551e-17`. These are numerical residuals, not statistical uncertainty.
+CI runs Python 3.10-3.13, the demo/caller CLI paths and SVG checks. The full installed-wheel verifier described below adds every test and all six package modules outside the checkout. The demo's 15 base/deletion fits all have max absolute gradient at most `8.197e-11`; the undamped influence solve residual is at most `5.551e-17`. These are numerical residuals, not statistical uncertainty.
 
 ## Finite-deletion path extension
 
@@ -77,6 +78,19 @@ CI runs Python 3.10-3.13, the demo/caller CLI paths, the SVG check and full-JSON
 On the developed fixture, row 5's frozen first-order prediction is +0.203204 versus endpoint +0.305655; Simpson 16 gives +0.305655349 with measured gap +1.381e-7. Deleting rows 5 and 6 jointly gives -0.357507, not the sum of individual deletion changes -0.142898. Deleting all 7 rows reverses the frozen prediction's sign: first-order -0.004253, endpoint +0.079105. Its Simpson 16 gap is still +0.000744 and is shown, not hidden.
 
 14 new behavior tests independently check interior derivatives, grouped endpoints, normalization, local sum identities, polynomial quadrature, group nonadditivity and all-row sign reversal, plus grid-fit reuse and strict inputs. Three more SVG tests check all table cells, all 51 polyline points, full metadata and hidden interior-Hessian tampering. The five-module wheel reproduces all 4 CLI reports outside checkout; both SVGs are byte-reproducible. The original demo and original SVG are unchanged. This is a numerical retraining reference, not a certified integration error bound, scalable deletion method or unlearning guarantee.
+
+## Mixed sample-weight curvature
+
+`weight_curvature` and `curvature INPUT.json` differentiate two supplied weight directions at one converged fit. The normalizer and ridge stay fixed. Three Hessian solves return both first parameter directions and the mixed parameter derivative; per-row third-derivative contractions avoid constructing a third-order tensor. The query report separates its own Hessian term from parameter-refit curvature. [Equations, caller input and numerical checks](CURVATURE.md).
+
+On the developed row-6 deletion direction, the query-Hessian term is +0.146986244 but parameter-refit curvature is -0.348215167, giving a negative second directional query derivative of -0.201228923. Convexity in model parameters does not imply convexity along retraining weights. This is local numerical curvature, not a full-deletion effect or a causal interaction.
+
+The twelve new tests include independent 65-digit scalar bisection references on 18 models, mixed refit differences on every parameter coordinate of 12 seeded vector models, both omitted-term controls, symmetry and coordinate checks. The full installed-wheel verifier runs all 55 tests outside checkout, checks all six module origins, matches five complete CLI reports and regenerates both original figures. The four earlier reports and two figures remain unchanged.
+
+```sh
+python -m influencelab curvature examples/curvature-input.json
+python examples/verify_wheel.py
+```
 
 ## Scope and attribution
 
