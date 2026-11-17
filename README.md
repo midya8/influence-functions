@@ -1,4 +1,4 @@
-# InfluenceLab
+# Influence functions
 
 InfluenceLab fits a small regularized logistic-regression model and differentiates training-row weights. It compares the local influence prediction with converged deletion refits rather than assuming that a derivative predicts a full retraining.
 
@@ -13,6 +13,9 @@ Separate calculations keep the approximation and reference separate:
 InfluenceLab fits fully regularized binary logistic regression using safeguarded Newton steps, then differentiates one training row's sample weight. Every report keeps the fitted parameters, full Hessian, Cholesky factor, sample gradients, parameter directions, query-loss derivatives, linear-solve residuals and line-search histories. Optional refits compare the linear deletion prediction with converged finite deletion under two explicit normalization conventions.
 
 Python 3.10+, standard library at runtime, no APIs, downloads or paid services.
+
+The repository is now `influence-functions`. The Python import and CLI names stay
+`influencelab` for compatibility with existing scripts.
 
 ## Run
 
