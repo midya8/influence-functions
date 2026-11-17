@@ -1,6 +1,6 @@
 # Influence functions
 
-InfluenceLab fits a small regularized logistic-regression model and differentiates training-row weights. It compares the local influence prediction with converged deletion refits rather than assuming that a derivative predicts a full retraining.
+This implementation fits a small regularized logistic-regression model and differentiates training-row weights. It compares the local influence prediction with converged deletion refits rather than assuming that a derivative predicts a full retraining.
 
 Separate calculations keep the approximation and reference separate:
 
@@ -10,7 +10,7 @@ Separate calculations keep the approximation and reference separate:
 
 ![Influence and deletion audit](assets/influence-audit.svg)
 
-InfluenceLab fits fully regularized binary logistic regression using safeguarded Newton steps, then differentiates one training row's sample weight. Every report keeps the fitted parameters, full Hessian, Cholesky factor, sample gradients, parameter directions, query-loss derivatives, linear-solve residuals and line-search histories. Optional refits compare the linear deletion prediction with converged finite deletion under two explicit normalization conventions.
+This implementation fits fully regularized binary logistic regression using safeguarded Newton steps, then differentiates one training row's sample weight. Every report keeps the fitted parameters, full Hessian, Cholesky factor, sample gradients, parameter directions, query-loss derivatives, linear-solve residuals and line-search histories. Optional refits compare the linear deletion prediction with converged finite deletion under two explicit normalization conventions.
 
 Python 3.10+, standard library at runtime, no APIs, downloads or paid services.
 
@@ -99,7 +99,7 @@ python examples/verify_wheel.py
 
 The algorithm is the standard implicit influence-function derivative, not a new attribution method. The implementation, synthetic fixture, numerical references and reporting are original to this project.
 
-- Pang Wei Koh and Percy Liang, [Understanding Black-box Predictions via Influence Functions](https://proceedings.mlr.press/v70/koh17a.html), ICML 2017, Section 2.1: inverse-Hessian upweighting and test-loss derivatives. InfluenceLab uses sample-weight units, hence its explicit `1/N` factor, and keeps ridge fixed outside the weighted data loss.
+- Pang Wei Koh and Percy Liang, [Understanding Black-box Predictions via Influence Functions](https://proceedings.mlr.press/v70/koh17a.html), ICML 2017, Section 2.1: inverse-Hessian upweighting and test-loss derivatives. This implementation uses sample-weight units, hence its explicit `1/N` factor, and keeps ridge fixed outside the weighted data loss.
 - Samyadeep Basu, Philip Pope and Soheil Feizi, [Influence Functions in Deep Learning Are Fragile](https://arxiv.org/abs/2006.14651): cautions against generalizing small convex results to deep nonconvex models. This project does not implement or benchmark neural-network influence.
 
 No causal attribution, mislabeled-row proof, data-valuation theorem, influence confidence interval, finite-deletion accuracy guarantee, scalable inverse-Hessian method, privacy deletion or machine-unlearning guarantee. Positive ridge and convergence are required; the implementation refuses an unconverged result instead of computing influence at an arbitrary iterate. MIT licensed.
